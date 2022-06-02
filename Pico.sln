@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32519.379
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{63FB8FEF-6972-449E-8F6D-77BBC2D5F83F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E6C47A92-F13F-4D92-9514-59185F6CA4AB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{8C23B93E-2A85-4B76-9A8F-D87B5C5854E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pico", "src\Pico\Pico.csproj", "{8E5819D8-D879-4325-9550-A6CB00B9CA0F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{8E5819D8-D879-4325-9550-A6CB00B9CA0F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E5819D8-D879-4325-9550-A6CB00B9CA0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E5819D8-D879-4325-9550-A6CB00B9CA0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E5819D8-D879-4325-9550-A6CB00B9CA0F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{8E5819D8-D879-4325-9550-A6CB00B9CA0F} = {63FB8FEF-6972-449E-8F6D-77BBC2D5F83F}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {13B3A201-F069-4E6C-A24E-4510E60D3924}
+	EndGlobalSection
+EndGlobal
