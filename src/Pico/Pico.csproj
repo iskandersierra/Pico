@@ -4,6 +4,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Version>0.1.0-alpha.0</Version>
+    <Description>Utility libraries for producing micro services in dotnet</Description>
+    <RepositoryUrl>https://github.com/iskandersierra/Pico</RepositoryUrl>
   </PropertyGroup>
 
 </Project>

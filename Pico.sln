@@ -11,6 +11,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{8C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pico", "src\Pico\Pico.csproj", "{8E5819D8-D879-4325-9550-A6CB00B9CA0F}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pico.Tests", "tests\Pico.Tests\Pico.Tests.csproj", "{F20A9121-7086-4799-B841-7A90AA198D26}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,12 +23,17 @@ Global
 		{8E5819D8-D879-4325-9550-A6CB00B9CA0F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8E5819D8-D879-4325-9550-A6CB00B9CA0F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8E5819D8-D879-4325-9550-A6CB00B9CA0F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F20A9121-7086-4799-B841-7A90AA198D26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F20A9121-7086-4799-B841-7A90AA198D26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F20A9121-7086-4799-B841-7A90AA198D26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F20A9121-7086-4799-B841-7A90AA198D26}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{8E5819D8-D879-4325-9550-A6CB00B9CA0F} = {63FB8FEF-6972-449E-8F6D-77BBC2D5F83F}
+		{F20A9121-7086-4799-B841-7A90AA198D26} = {E6C47A92-F13F-4D92-9514-59185F6CA4AB}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {13B3A201-F069-4E6C-A24E-4510E60D3924}
