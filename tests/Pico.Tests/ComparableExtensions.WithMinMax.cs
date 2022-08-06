@@ -48,4 +48,45 @@ public partial class ComparableExtensionsTests
     public void ClampedToComparer(int value, int minimum, int maximum, int result) =>
         value.ClampedTo(minimum, maximum, Comparer<int>.Default)
             .Should().Be(result);
+
+
+    [Theory]
+    [InlineData(10, 20, 30, false)]
+    [InlineData(20, 20, 30, true)]
+    [InlineData(25, 20, 30, true)]
+    [InlineData(30, 20, 30, true)]
+    [InlineData(40, 20, 30, false)]
+    public void IsBetweenComparer(int value, int minimum, int maximum, bool expected) =>
+        value.IsBetween(minimum, maximum, Comparer<int>.Default)
+            .Should().Be(expected);
+
+    [Theory]
+    [InlineData(10, 20, 30, false)]
+    [InlineData(20, 20, 30, true)]
+    [InlineData(25, 20, 30, true)]
+    [InlineData(30, 20, 30, true)]
+    [InlineData(40, 20, 30, false)]
+    public void IsBetween(int value, int minimum, int maximum, bool expected) =>
+        value.IsBetween(minimum, maximum)
+            .Should().Be(expected);
+
+    [Theory]
+    [InlineData(10, 20, 30, false)]
+    [InlineData(20, 20, 30, false)]
+    [InlineData(25, 20, 30, true)]
+    [InlineData(30, 20, 30, false)]
+    [InlineData(40, 20, 30, false)]
+    public void IsBetweenExclusiveComparer(int value, int minimum, int maximum, bool expected) =>
+        value.IsBetweenExclusive(minimum, maximum, Comparer<int>.Default)
+            .Should().Be(expected);
+
+    [Theory]
+    [InlineData(10, 20, 30, false)]
+    [InlineData(20, 20, 30, false)]
+    [InlineData(25, 20, 30, true)]
+    [InlineData(30, 20, 30, false)]
+    [InlineData(40, 20, 30, false)]
+    public void IsBetweenExclusive(int value, int minimum, int maximum, bool expected) =>
+        value.IsBetweenExclusive(minimum, maximum)
+            .Should().Be(expected);
 }
