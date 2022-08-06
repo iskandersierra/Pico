@@ -10,4 +10,9 @@ public static partial class EnumerableExtensions
         this IEnumerable<T> source,
         CancellationToken cancellationToken = default) =>
         await source.ForEachAsync(_ => Task.CompletedTask, cancellationToken);
+
+    public static async Task ConsumeAsync<T>(
+        this IAsyncEnumerable<T> source,
+        CancellationToken cancellationToken = default) =>
+        await source.ForEachAsync(_ => Task.CompletedTask, cancellationToken);
 }

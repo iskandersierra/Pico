@@ -119,9 +119,9 @@ partial class ReflectionExtensions
 
             var sb = new StringBuilder();
 
-            sb.Append(typeName.BeforeOrAll("`")).Append("<");
+            sb.Append(typeName.BeforeOrAll("`")).Append('<');
             var args = type.GetGenericArguments();
-            for (int i = 0; i < args.Length; i++)
+            for (var i = 0; i < args.Length; i++)
             {
                 if (i > 0)
                 {
@@ -130,7 +130,7 @@ partial class ReflectionExtensions
 
                 sb.Append(GetTypeName(args[i], fullyQualified));
             }
-            sb.Append(">");
+            sb.Append('>');
 
             return sb.ToString();
         }
