@@ -6,12 +6,3 @@ public interface IIdGenerator
 
     string Generate();
 }
-
-public static class IdGenerator
-{
-    public static IIdGenerator FromBinary(
-        IBinaryIdGenerator binaryGenerator)
-    {
-
-    }
-}
