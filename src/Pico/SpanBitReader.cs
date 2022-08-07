@@ -3,8 +3,7 @@ namespace Pico;
 public ref struct SpanBitReader
 {
     private readonly ReadOnlySpan<byte> buffer;
-    private int intOffset = 0; // whole offset in bytes
-    private int bitOffset = 0; // 0..7
+    private int bitPosition = 0;
 
     public SpanBitReader(ReadOnlySpan<byte> buffer, int bitOffset = 0)
     {
@@ -18,23 +17,72 @@ public ref struct SpanBitReader
 
     public int BytePosition
     {
-        get => intOffset;
-        set => BitPosition = value * 8;
+        get => bitPosition >> 3;
+        set => BitPosition = value << 3;
     }
 
     public int BitPosition
     {
-        get => intOffset * 8 + bitOffset;
+        get => bitPosition;
         set
         {
             if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), value, "Must be non-negative");
             if (value > BitLength) throw new ArgumentOutOfRangeException(nameof(value), value, $"Must be less than bit length: {BitLength}");
-            intOffset = value >> 3;
-            bitOffset = value & 7;
+            bitPosition = value;
         }
     }
 
+    public int BitOffset
+    {
+        get => bitPosition & 7;
+    }
+
     public int RemainingBits => BitLength - BitPosition;
+
+    #region [ Get Internal ]
+
+    private byte GetByteInternal(int position, int bitsCount)
+    {
+        var intOff = position >> 3;
+        var bitOff = position & 7;
+        var bitSum = bitsCount + bitOff;
+        if (bitSum <= 8)
+            return (byte)(buffer[intOff] >> (8 - bitSum) & (byte)((1 << bitsCount) - 1));
+
+        var value = (byte)(buffer[intOff] & ((1 << (8 - bitOff)) - 1));
+        value = (byte)((value << (bitSum - 8)) |
+                       (buffer[intOff + 1] >> (16 - bitSum)));
+        return value;
+    }
+
+    private ushort GetShortInternal(int position, int bitsCount)
+    {
+        if (bitsCount <= 8)
+            return GetByteInternal(position, bitsCount);
+
+        return (ushort)((ushort)(GetByteInternal(position, 8) << (bitsCount - 8)) |
+                        GetByteInternal(position + 8, bitsCount - 8));
+    }
+
+    private uint GetIntInternal(int position, int bitsCount)
+    {
+        if (bitsCount <= 16)
+            return GetShortInternal(position, bitsCount);
+
+        return (uint)GetShortInternal(position, 16) << (bitsCount - 16) |
+               GetShortInternal(position + 16, bitsCount - 16);
+    }
+
+    private ulong GetLongInternal(int position, int bitsCount)
+    {
+        if (bitsCount <= 32)
+            return GetIntInternal(position, bitsCount);
+
+        return (ulong)GetIntInternal(position, 32) << (bitsCount - 32) |
+               GetIntInternal(position + 32, bitsCount - 32);
+    }
+
+    #endregion
 
     #region [ Try Read/Peek Bit ]
 
@@ -46,7 +94,7 @@ public ref struct SpanBitReader
             return false;
         }
 
-        bit = (buffer[intOffset] & (1 << (7 - bitOffset))) != 0;
+        bit = GetByteInternal(bitPosition, 1) != 0;
         return true;
     }
 
@@ -58,13 +106,9 @@ public ref struct SpanBitReader
 
     public bool TryReadBit(out bool bit)
     {
-        if (TryPeekBit(out bit))
-        {
-            bitOffset++;
-            UpdateOffsets();
-            return true;
-        }
-        return false;
+        if (!TryPeekBit(out bit)) return false;
+        bitPosition++;
+        return true;
     }
 
     public bool ReadBit()
@@ -77,61 +121,149 @@ public ref struct SpanBitReader
 
     #region [ Try Read/Peek Byte ]
 
-    public bool TryPeekByte(int bitsCount, out byte value)
+    public bool TryPeekByte(out byte value, int bitsCount = 8)
     {
         if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
-        if (bitsCount > 8) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 8");
+        if (bitsCount > 8) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 9");
         if (bitsCount > RemainingBits)
         {
             value = 0;
             return false;
         }
 
-        var bitSum = bitsCount + bitOffset;
-        if (bitSum <= 8)
-        {
-            value = (byte)(buffer[intOffset] >> (8 - bitSum) & (byte)((1 << bitsCount) - 1));
-            return true;
-        }
-
-        value = (byte)(buffer[intOffset] & ((1 << (8 - bitOffset)) - 1));
-        value = (byte) ((value << (bitSum - 8)) |
-                        (buffer[intOffset + 1] >> (16 - bitSum)));
+        value = GetByteInternal(BitPosition, bitsCount);
         return true;
     }
 
-    public bool TryPeekByte(out byte value) => TryPeekByte(8, out value);
-
     public byte PeekByte(int bitsCount = 8)
     {
-        if (TryPeekByte(bitsCount, out var value)) return value;
+        if (TryPeekByte(out var value, bitsCount)) return value;
         throw new EndOfStreamException();
     }
 
-    public bool TryReadByte(int bitsCount, out byte value)
+    public bool TryReadByte(out byte value, int bitsCount = 8)
     {
-        if (TryPeekByte(bitsCount, out value))
-        {
-            bitOffset += bitsCount;
-            UpdateOffsets();
-            return true;
-        }
-        return false;
+        if (!TryPeekByte(out value, bitsCount)) return false;
+        bitPosition += bitsCount;
+        return true;
     }
-
-    public bool TryReadByte(out byte value) => TryReadByte(8, out value);
 
     public byte ReadByte(int bitsCount = 8)
     {
-        if (TryReadByte(bitsCount, out var value)) return value;
+        if (TryReadByte(out var value, bitsCount)) return value;
         throw new EndOfStreamException();
     }
 
     #endregion
 
-    private void UpdateOffsets()
+    #region [ Try Read/Peek Short ]
+
+    public bool TryPeekShort(out ushort value, int bitsCount = 16)
     {
-        intOffset += bitOffset >> 3;
-        bitOffset &= 7;
+        if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
+        if (bitsCount > 16) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 17");
+        if (bitsCount > RemainingBits)
+        {
+            value = 0;
+            return false;
+        }
+
+        value = GetShortInternal(BitPosition, bitsCount);
+        return true;
     }
+
+    public ushort PeekShort(int bitsCount = 16)
+    {
+        if (TryPeekShort(out var value, bitsCount)) return value;
+        throw new EndOfStreamException();
+    }
+
+    public bool TryReadShort(out ushort value, int bitsCount = 16)
+    {
+        if (!TryPeekShort(out value, bitsCount)) return false;
+        bitPosition += bitsCount;
+        return true;
+    }
+
+    public ushort ReadShort(int bitsCount = 16)
+    {
+        if (TryReadShort(out var value, bitsCount)) return value;
+        throw new EndOfStreamException();
+    }
+
+    #endregion
+
+    #region [ Try Read/Peek Int ]
+
+    public bool TryPeekInt(out uint value, int bitsCount = 32)
+    {
+        if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
+        if (bitsCount > 32) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 33");
+        if (bitsCount > RemainingBits)
+        {
+            value = 0;
+            return false;
+        }
+
+        value = GetIntInternal(BitPosition, bitsCount);
+        return true;
+    }
+
+    public uint PeekInt(int bitsCount = 32)
+    {
+        if (TryPeekInt(out var value, bitsCount)) return value;
+        throw new EndOfStreamException();
+    }
+
+    public bool TryReadInt(out uint value, int bitsCount = 32)
+    {
+        if (!TryPeekInt(out value, bitsCount)) return false;
+        bitPosition += bitsCount;
+        return true;
+    }
+
+    public uint ReadInt(int bitsCount = 32)
+    {
+        if (TryReadInt(out var value, bitsCount)) return value;
+        throw new EndOfStreamException();
+    }
+
+    #endregion
+
+    #region [ Try Read/Peek Long ]
+
+    public bool TryPeekLong(out ulong value, int bitsCount = 64)
+    {
+        if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
+        if (bitsCount > 64) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 65");
+        if (bitsCount > RemainingBits)
+        {
+            value = 0;
+            return false;
+        }
+
+        value = GetLongInternal(BitPosition, bitsCount);
+        return true;
+    }
+
+    public ulong PeekLong(int bitsCount = 64)
+    {
+        if (TryPeekLong(out var value, bitsCount)) return value;
+        throw new EndOfStreamException();
+    }
+
+    public bool TryReadLong(out ulong value, int bitsCount = 64)
+    {
+        if (!TryPeekLong(out value, bitsCount)) return false;
+        bitPosition += bitsCount;
+        return true;
+    }
+
+    public ulong ReadLong(int bitsCount = 64)
+    {
+        if (TryReadLong(out var value, bitsCount)) return value;
+        throw new EndOfStreamException();
+    }
+
+    #endregion
 }
