@@ -12,7 +12,6 @@ public ref struct SpanBitReader
         this.buffer = buffer;
         BitLength = buffer.Length * 8;
         BitPosition = bitOffset;
-        if (RemainingBits < 0) throw new ArgumentOutOfRangeException(nameof(bitOffset), bitOffset, $"Must be less than buffer length: {buffer.Length * 8}");
     }
 
     public int BitLength { get; }
@@ -30,12 +29,14 @@ public ref struct SpanBitReader
         {
             if (value < 0) throw new ArgumentOutOfRangeException(nameof(value), value, "Must be non-negative");
             if (value > BitLength) throw new ArgumentOutOfRangeException(nameof(value), value, $"Must be less than bit length: {BitLength}");
-            intOffset = value / 8;
-            bitOffset = value % 8;
+            intOffset = value >> 3;
+            bitOffset = value & 7;
         }
     }
 
     public int RemainingBits => BitLength - BitPosition;
+
+    #region [ Try Read/Peek Bit ]
 
     public bool TryPeekBit(out bool bit)
     {
@@ -45,7 +46,7 @@ public ref struct SpanBitReader
             return false;
         }
 
-        bit = (buffer[intOffset] & (1 << bitOffset)) != 0;
+        bit = (buffer[intOffset] & (1 << (7 - bitOffset))) != 0;
         return true;
     }
 
@@ -72,6 +73,10 @@ public ref struct SpanBitReader
         throw new EndOfStreamException();
     }
 
+    #endregion
+
+    #region [ Try Read/Peek Byte ]
+
     public bool TryPeekByte(int bitsCount, out byte value)
     {
         if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
@@ -82,12 +87,47 @@ public ref struct SpanBitReader
             return false;
         }
 
-        var bitCount1 = Math.Min(bitsCount, 8 - bitOffset);
-        var extraBits = 8 - bitCount1 - bitOffset;
-        var localValue = buffer[intOffset] >> extraBits;
-        value = 0;
+        var bitSum = bitsCount + bitOffset;
+        if (bitSum <= 8)
+        {
+            value = (byte)(buffer[intOffset] >> (8 - bitSum) & (byte)((1 << bitsCount) - 1));
+            return true;
+        }
+
+        value = (byte)(buffer[intOffset] & ((1 << (8 - bitOffset)) - 1));
+        value = (byte) ((value << (bitSum - 8)) |
+                        (buffer[intOffset + 1] >> (16 - bitSum)));
         return true;
     }
+
+    public bool TryPeekByte(out byte value) => TryPeekByte(8, out value);
+
+    public byte PeekByte(int bitsCount = 8)
+    {
+        if (TryPeekByte(bitsCount, out var value)) return value;
+        throw new EndOfStreamException();
+    }
+
+    public bool TryReadByte(int bitsCount, out byte value)
+    {
+        if (TryPeekByte(bitsCount, out value))
+        {
+            bitOffset += bitsCount;
+            UpdateOffsets();
+            return true;
+        }
+        return false;
+    }
+
+    public bool TryReadByte(out byte value) => TryReadByte(8, out value);
+
+    public byte ReadByte(int bitsCount = 8)
+    {
+        if (TryReadByte(bitsCount, out var value)) return value;
+        throw new EndOfStreamException();
+    }
+
+    #endregion
 
     private void UpdateOffsets()
     {
