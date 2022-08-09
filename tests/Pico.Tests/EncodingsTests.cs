@@ -7,6 +7,7 @@ public class EncodingsTests
     [Theory]
     [InlineData("", "")]
     [InlineData(" ", "20")]
+    [InlineData("Hello", "48656c6c6f")]
     [InlineData("Hello!", "48656c6c6f21")]
     public void ASCII(string text, string hexBytes)
     {
@@ -20,6 +21,7 @@ public class EncodingsTests
     [Theory]
     [InlineData("", "")]
     [InlineData(" ", "0020")]
+    [InlineData("Hello", "00480065006c006c006f")]
     [InlineData("Hello!", "00480065006c006c006f0021")]
     [InlineData("Ḽơᶉëᶆ ȋṕšᶙṁ ḍỡḽǭᵳ", "1e3c01a11d8900eb1d860020020b1e5501611d991e4100201e0d1ee11e3d01ed1d73")]
     public void BigEndianUnicode(string text, string hexBytes)
@@ -34,6 +36,7 @@ public class EncodingsTests
     [Theory]
     [InlineData("", "")]
     [InlineData(" ", "20")]
+    [InlineData("Hello", "48656c6c6f")]
     [InlineData("Hello!", "48656c6c6f21")]
     [InlineData("Ḽơᶉëᶆ ȋṕšᶙṁ ḍỡḽǭᵳ", "e1b8bcc6a1e1b689c3abe1b68620c88be1b995c5a1e1b699e1b98120e1b88de1bba1e1b8bdc7ade1b5b3")]
     public void Default(string text, string hexBytes)
@@ -48,6 +51,7 @@ public class EncodingsTests
     [Theory]
     [InlineData("", "")]
     [InlineData(" ", "20")]
+    [InlineData("Hello", "48656c6c6f")]
     [InlineData("Hello!", "48656c6c6f21")]
     public void Latin1(string text, string hexBytes)
     {
@@ -61,6 +65,7 @@ public class EncodingsTests
     [Theory]
     [InlineData("", "")]
     [InlineData(" ", "20000000")]
+    [InlineData("Hello", "48000000650000006c0000006c0000006f000000")]
     [InlineData("Hello!", "48000000650000006c0000006c0000006f00000021000000")]
     [InlineData("Ḽơᶉëᶆ ȋṕšᶙṁ ḍỡḽǭᵳ", "3c1e0000a1010000891d0000eb000000861d0000200000000b020000551e000061010000991d0000411e0000200000000d1e0000e11e00003d1e0000ed010000731d0000")]
     public void UTF32(string text, string hexBytes)
@@ -75,6 +80,7 @@ public class EncodingsTests
     [Theory]
     [InlineData("", "")]
     [InlineData(" ", "2000")]
+    [InlineData("Hello", "480065006c006c006f00")]
     [InlineData("Hello!", "480065006c006c006f002100")]
     [InlineData("Ḽơᶉëᶆ ȋṕšᶙṁ ḍỡḽǭᵳ", "3c1ea101891deb00861d20000b02551e6101991d411e20000d1ee11e3d1eed01731d")]
     public void Unicode(string text, string hexBytes)
@@ -89,6 +95,7 @@ public class EncodingsTests
     [Theory]
     [InlineData("", "")]
     [InlineData(" ", "20")]
+    [InlineData("Hello", "48656c6c6f")]
     [InlineData("Hello!", "48656c6c6f21")]
     [InlineData("Ḽơᶉëᶆ ȋṕšᶙṁ ḍỡḽǭᵳ", "e1b8bcc6a1e1b689c3abe1b68620c88be1b995c5a1e1b699e1b98120e1b88de1bba1e1b8bdc7ade1b5b3")]
     public void UTF8(string text, string hexBytes)
@@ -101,9 +108,13 @@ public class EncodingsTests
     }
 
     [Theory]
+    [InlineData("AA==", "00")]
+    [InlineData("AAA=", "0000")]
+    [InlineData("AAAA", "000000")]
     [InlineData("IA==", "20")]
     [InlineData("ICA=", "2020")]
     [InlineData("ICAg", "202020")]
+    [InlineData("SGVsbG8=", "48656c6c6f")]
     [InlineData("SGVsbG8h", "48656c6c6f21")]
     [InlineData("4bi8xqHhtonDq+G2hiDIi+G5lcWh4baZ4bmBIOG4jeG7oeG4vcet4bWz", "e1b8bcc6a1e1b689c3abe1b68620c88be1b995c5a1e1b699e1b98120e1b88de1bba1e1b8bdc7ade1b5b3")]
     public void Base64(string text, string hexBytes)
@@ -119,6 +130,7 @@ public class EncodingsTests
     [InlineData("20")]
     [InlineData("2020")]
     [InlineData("202020")]
+    [InlineData("48656c6c6f")]
     [InlineData("48656c6c6f21")]
     [InlineData("e1b8bcc6a1e1b689c3abe1b68620c88be1b995c5a1e1b699e1b98120e1b88de1bba1e1b8bdc7ade1b5b3")]
     public void HexLowercase(string hexBytes)

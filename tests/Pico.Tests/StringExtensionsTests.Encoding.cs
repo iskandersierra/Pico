@@ -100,11 +100,8 @@ public partial class StringExtensionsTests
     [InlineData("0", new byte[] { 0x00 })]
     [InlineData("00", new byte[] { 0x00 })]
     [InlineData("20", new byte[] { 0x20 })]
-    [InlineData("020", new byte[] { 0x00, 0x20 })]
     [InlineData("48656C6C6F", new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F })]
     [InlineData("48656C6c6f", new byte[] { 0x48, 0x65, 0x6C, 0x6C, 0x6F })]
-    [InlineData("048656C6C6F", new byte[] { 0x00, 0x48, 0x65, 0x6C, 0x6C, 0x6F })]
-    [InlineData("048656c6C6f", new byte[] { 0x00, 0x48, 0x65, 0x6C, 0x6C, 0x6F })]
     public void FromHexEncoding(string text, byte[] bytes) =>
         text.FromHexEncoding().Should()
             .BeEquivalentTo(bytes, options => options.WithStrictOrdering());
