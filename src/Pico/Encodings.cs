@@ -24,4 +24,9 @@ public static class Encodings
     public static readonly IBinaryStringEncoder Base64 =
         new Base64BinaryStringEncoder();
 
+    public static readonly IBinaryStringEncoder HexUppercase =
+        new HexBinaryStringEncoder(true);
+    public static readonly IBinaryStringEncoder HexLowercase =
+        new HexBinaryStringEncoder(false);
+
 }

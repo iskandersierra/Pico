@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace Pico.Tests;
 
 public class EncodingsTests
@@ -99,10 +101,11 @@ public class EncodingsTests
     }
 
     [Theory]
-    [InlineData("", "")]
-    [InlineData(" ", "20")]
-    [InlineData("Hello!", "48656c6c6f21")]
-    [InlineData("Ḽơᶉëᶆ ȋṕšᶙṁ ḍỡḽǭᵳ", "e1b8bcc6a1e1b689c3abe1b68620c88be1b995c5a1e1b699e1b98120e1b88de1bba1e1b8bdc7ade1b5b3")]
+    [InlineData("IA==", "20")]
+    [InlineData("ICA=", "2020")]
+    [InlineData("ICAg", "202020")]
+    [InlineData("SGVsbG8h", "48656c6c6f21")]
+    [InlineData("4bi8xqHhtonDq+G2hiDIi+G5lcWh4baZ4bmBIOG4jeG7oeG4vcet4bWz", "e1b8bcc6a1e1b689c3abe1b68620c88be1b995c5a1e1b699e1b98120e1b88de1bba1e1b8bdc7ade1b5b3")]
     public void Base64(string text, string hexBytes)
     {
         // GIVEN the encoding is UTF-8
@@ -112,16 +115,66 @@ public class EncodingsTests
         RunTests(encoding, text, hexBytes);
     }
 
+    [Theory]
+    [InlineData("20")]
+    [InlineData("2020")]
+    [InlineData("202020")]
+    [InlineData("48656c6c6f21")]
+    [InlineData("e1b8bcc6a1e1b689c3abe1b68620c88be1b995c5a1e1b699e1b98120e1b88de1bba1e1b8bdc7ade1b5b3")]
+    public void HexLowercase(string hexBytes)
+    {
+        // GIVEN the encoding is UTF-8
+        var encoding = Encodings.HexLowercase;
+
+        // THEN all tests apply
+        RunTests(encoding, hexBytes, hexBytes);
+    }
+
+    [Theory]
+    [InlineData("20")]
+    [InlineData("2020")]
+    [InlineData("202020")]
+    [InlineData("48656C6C6F21")]
+    [InlineData("E1B8BCC6A1E1B689C3ABE1B68620C88BE1B995C5A1E1B699E1B98120E1B88DE1BBA1E1B8BDC7ADE1B5B3")]
+    public void HexUppercase(string hexBytes)
+    {
+        // GIVEN the encoding is UTF-8
+        var encoding = Encodings.HexUppercase;
+
+        // THEN all tests apply
+        RunTests(encoding, hexBytes, hexBytes);
+    }
+
+    private string ToHexEncoding(byte[] bytes)
+    {
+        var sb = new StringBuilder();
+        foreach (var b in bytes)
+        {
+            sb.Append(b.ToString("x2"));
+        }
+        return sb.ToString();
+    }
+
+    private byte[] FromHexEncoding(string hex)
+    {
+        var bytes = new byte[hex.Length / 2];
+        for (var i = 0; i < hex.Length; i += 2)
+        {
+            bytes[i / 2] = Convert.ToByte(hex.Substring(i, 2), 16);
+        }
+        return bytes;
+    }
+
     private void RunTests(IBinaryStringEncoder encoder, string text, string hexBytes)
     {
-        var bytes = hexBytes.FromHexEncoding();
+        var bytes = FromHexEncoding(hexBytes);
 
         // WHEN the text is encoded to bytes
         var bytesBuffer = new byte[bytes.Length];
         var bytesCount = encoder.GetBytes(text.AsSpan(), bytesBuffer.AsSpan());
 
         // THEN the bytes are equal to the expected values
-        bytesBuffer.ToHexEncoding().Should().Be(hexBytes);
+        ToHexEncoding(bytesBuffer).Should().BeEquivalentTo(hexBytes);
 
         // AND the bytes count is equal to the expected amount
         bytesCount.Should().Be(bytes.Length);

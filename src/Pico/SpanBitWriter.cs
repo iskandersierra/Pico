@@ -70,6 +70,38 @@ public ref struct SpanBitWriter
         }
     }
 
+    private void SetShortInternal(int position, ushort value, int bitsCount)
+    {
+        if (bitsCount <= 8)
+            SetByteInternal(position, (byte)value, bitsCount);
+        else
+        {
+            SetByteInternal(position, (byte) (value >> 8), bitsCount - 8);
+            SetByteInternal(position + (bitsCount - 8), (byte) (value), 8);
+        }
+    }
+
+    private void SetIntInternal(int position, uint value, int bitsCount)
+    {
+        if (bitsCount <= 16)
+            SetShortInternal(position, (ushort)value, bitsCount);
+        else
+        {
+            SetShortInternal(position, (ushort)(value >> 16), bitsCount - 16);
+            SetShortInternal(position + (bitsCount - 16), (ushort)(value), 16);
+        }
+    }
+
+    private void SetLongInternal(int position, ulong value, int bitsCount)
+    {
+        if (bitsCount <= 32)
+            SetIntInternal(position, (uint)value, bitsCount);
+        else
+        {
+            SetIntInternal(position, (uint)(value >> 32), bitsCount - 32);
+            SetIntInternal(position + (bitsCount - 32), (uint)(value), 32);
+        }
+    }
 
     #endregion
 
@@ -110,7 +142,7 @@ public ref struct SpanBitWriter
     public bool TryPokeByte(byte value, int bitCount = 8)
     {
         if (bitCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be positive");
-        if (bitCount > 8) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be less than 9");
+        if (bitCount > 8) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be less than or equals to 8");
         if (RemainingBits < bitCount) return false;
 
         SetByteInternal(BitPosition, value, bitCount);
@@ -132,6 +164,99 @@ public ref struct SpanBitWriter
     public void WriteByte(byte value, int bitCount = 8)
     {
         if (!TryWriteByte(value, bitCount)) throw new EndOfStreamException();
+    }
+
+    #endregion
+
+    #region [ Try Write/Poke Short ]
+
+    public bool TryPokeShort(ushort value, int bitCount = 16)
+    {
+        if (bitCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be positive");
+        if (bitCount > 16) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be less than or equals to 16");
+        if (RemainingBits < bitCount) return false;
+
+        SetShortInternal(BitPosition, value, bitCount);
+        return true;
+    }
+
+    public void PokeShort(ushort value, int bitCount = 16)
+    {
+        if (!TryPokeShort(value, bitCount)) throw new EndOfStreamException();
+    }
+
+    public bool TryWriteShort(ushort value, int bitCount = 16)
+    {
+        if (!TryPokeShort(value, bitCount)) return false;
+        bitPosition += bitCount;
+        return true;
+    }
+
+    public void WriteShort(ushort value, int bitCount = 16)
+    {
+        if (!TryWriteShort(value, bitCount)) throw new EndOfStreamException();
+    }
+
+    #endregion
+
+    #region [ Try Write/Poke Int ]
+
+    public bool TryPokeInt(uint value, int bitCount = 32)
+    {
+        if (bitCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be positive");
+        if (bitCount > 32) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be less than or equals to 32");
+        if (RemainingBits < bitCount) return false;
+
+        SetIntInternal(BitPosition, value, bitCount);
+        return true;
+    }
+
+    public void PokeInt(uint value, int bitCount = 32)
+    {
+        if (!TryPokeInt(value, bitCount)) throw new EndOfStreamException();
+    }
+
+    public bool TryWriteInt(uint value, int bitCount = 32)
+    {
+        if (!TryPokeInt(value, bitCount)) return false;
+        bitPosition += bitCount;
+        return true;
+    }
+
+    public void WriteInt(uint value, int bitCount = 32)
+    {
+        if (!TryWriteInt(value, bitCount)) throw new EndOfStreamException();
+    }
+
+    #endregion
+
+    #region [ Try Write/Poke Long ]
+
+    public bool TryPokeLong(ulong value, int bitCount = 64)
+    {
+        if (bitCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be positive");
+        if (bitCount > 64) throw new ArgumentOutOfRangeException(nameof(bitCount), bitCount, "Must be less than or equals to 64");
+        if (RemainingBits < bitCount) return false;
+
+        SetLongInternal(BitPosition, value, bitCount);
+        return true;
+    }
+
+    public void PokeLong(ulong value, int bitCount = 64)
+    {
+        if (!TryPokeLong(value, bitCount)) throw new EndOfStreamException();
+    }
+
+    public bool TryWriteLong(ulong value, int bitCount = 64)
+    {
+        if (!TryPokeLong(value, bitCount)) return false;
+        bitPosition += bitCount;
+        return true;
+    }
+
+    public void WriteLong(ulong value, int bitCount = 64)
+    {
+        if (!TryWriteLong(value, bitCount)) throw new EndOfStreamException();
     }
 
     #endregion

@@ -13,18 +13,16 @@ public class Base64BinaryStringEncoder :
 
     private static readonly char[] DefaultVocab;
     private static readonly Dictionary<char, byte> DefaultInverseVocab;
-    private static readonly string[] DefaultPaddings;
 
     static Base64BinaryStringEncoder()
     {
-        (DefaultVocab, DefaultInverseVocab, DefaultPaddings) = ProcessVocabulary(
+        (DefaultVocab, DefaultInverseVocab) = ProcessVocabulary(
             DefaultVocabString, DefaultPaddingChar, DefaultNewLineChar);
     }
 
     private readonly char[] vocabulary;
     private readonly Dictionary<char, byte> inverseVocabulary;
     private readonly char padding;
-    private readonly string[] paddings;
     private readonly char newLine;
     private readonly int? maxLineLength;
 
@@ -34,9 +32,9 @@ public class Base64BinaryStringEncoder :
         char newLine = '\n',
         int? maxLineLength = null) // 
     {
-        (this.vocabulary, inverseVocabulary, paddings) =
+        (this.vocabulary, inverseVocabulary) =
             vocabulary is null
-                ? (DefaultVocab, DefaultInverseVocab, DefaultPaddings)
+                ? (DefaultVocab, DefaultInverseVocab)
                 : ProcessVocabulary(vocabulary, padding, newLine);
         this.padding = padding;
         this.newLine = newLine;
@@ -45,57 +43,65 @@ public class Base64BinaryStringEncoder :
 
     public int GetByteCount(ReadOnlySpan<char> text)
     {
+        var textLength = text.Length;
         if (text.Length == 0) return 0;
 
-        throw new NotImplementedException();
+        var bitsCount = 0;
+        var lastCharWasZero = false;
+
+        for (var i = 0; i < textLength; i++)
+        {
+            var ch = text[i];
+            if (ch == padding) break;
+            if (inverseVocabulary.TryGetValue(ch, out var index))
+            {
+                bitsCount += 6;
+                lastCharWasZero = index == 0;
+            }
+        }
+
+        var bytesCount = bitsCount >> 3;
+        if (!lastCharWasZero && (bitsCount & 7) != 0) bytesCount++;
+        return bytesCount;
     }
 
-    public int GetCharCount(ReadOnlySpan<byte> buffer) =>
-        (buffer.Length + 2) / 3;
+    public int GetCharCount(ReadOnlySpan<byte> buffer)
+    {
+        return 4 * ((buffer.Length + 2) / 3);
+    }
 
     public int GetBytes(ReadOnlySpan<char> text, Span<byte> buffer)
     {
+        var textLength = text.Length;
         if (text.Length == 0) return 0;
 
-        throw new NotImplementedException();
-    }
+        // TODO: Avoid using GetByteCount
+        var bytesCount = GetByteCount(text);
+        if (bytesCount > buffer.Length)
+            throw new ArgumentException($"Bytes buffer is too small. Expected at least {bytesCount} bytes, but found {buffer.Length}.");
 
-    private int GetBytesAux(ReadOnlySpan<char> text, Action<int, byte> setByte)
-    {
-        throw new NotImplementedException();
-        // TODO: Benchmark and optimize this method.
-        //var textLength = text.Length;
-        //if (textLength == 0) return 0;
+        var writer = new SpanBitWriter(buffer);
+        var remainingBits = bytesCount << 3;
 
-        //var byteIndex = 0;
-        //var charIndex = 0;
-        //var currentChars = new char[4];
-        //var currentBytes = new char[3];
+        for (var i = 0; i < textLength; i++)
+        {
+            var ch = text[i];
+            if (ch == padding) break;
+            if (inverseVocabulary.TryGetValue(ch, out var index) &&
+                remainingBits >= 6)
+            {
+                writer.WriteByte(index, 6);
+                remainingBits -= 6;
+            }
+        }
 
-        //while (charIndex < textLength)
-        //{
-        //    var validChars = 0;
-        //    while (charIndex < textLength && validChars < 4)
-        //    {
-        //        var ch = text[charIndex];
-        //        if (ch == padding) break;
-        //        if (inverseVocabulary.TryGetValue(ch, out var b))
-        //        {
-        //            currentChars[validChars] = ch;
-                    
-        //            validChars++;
-        //        }
-        //        charIndex++;
-        //    }
-
-        //    if (validChars == 0) break;
-
-        //}
+        return bytesCount;
     }
 
     public int GetChars(ReadOnlySpan<byte> buffer, Span<char> text)
     {
         // TODO: Benchmark and optimize this method.
+
         var bufferLength = buffer.Length;
         if (bufferLength == 0) return 0;
 
@@ -118,7 +124,7 @@ public class Base64BinaryStringEncoder :
             var char2 = vocabulary[((byte1 & 0x03) << 4) | (byte2 >> 4)];
             var char3 = vocabulary[((byte2 & 0x0f) << 2) | (byte3 >> 6)];
             var char4 = vocabulary[byte3 & 0x3f];
-            
+
             text[charIndex++] = char1;
             text[charIndex++] = char2;
             text[charIndex++] = char3;
@@ -156,13 +162,13 @@ public class Base64BinaryStringEncoder :
             // do nothing
         }
 
-        Debug.Assert(charIndex == charCount);
+        Debug.Assert(charIndex >= charCount);
         Debug.Assert(byteIndex == bufferLength);
 
         return charIndex;
     }
 
-    private static (char[], Dictionary<char, byte>, string[]) ProcessVocabulary(
+    private static (char[], Dictionary<char, byte>) ProcessVocabulary(
         string vocabulary,
         char padding,
         char newLine)
@@ -199,13 +205,6 @@ public class Base64BinaryStringEncoder :
             inverseVocabulary.Add(vocabularyChars[i], i);
         }
 
-        var paddings = new []
-        {
-            "",
-            new string(padding, 2),
-            new string(padding, 1),
-        };
-
-        return (vocabularyChars, inverseVocabulary, paddings);
+        return (vocabularyChars, inverseVocabulary);
     }
 }

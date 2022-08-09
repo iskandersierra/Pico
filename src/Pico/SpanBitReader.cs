@@ -124,7 +124,7 @@ public ref struct SpanBitReader
     public bool TryPeekByte(out byte value, int bitsCount = 8)
     {
         if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
-        if (bitsCount > 8) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 9");
+        if (bitsCount > 8) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than or equals to 8");
         if (bitsCount > RemainingBits)
         {
             value = 0;
@@ -161,7 +161,7 @@ public ref struct SpanBitReader
     public bool TryPeekShort(out ushort value, int bitsCount = 16)
     {
         if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
-        if (bitsCount > 16) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 17");
+        if (bitsCount > 16) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than or equals to 16");
         if (bitsCount > RemainingBits)
         {
             value = 0;
@@ -198,7 +198,7 @@ public ref struct SpanBitReader
     public bool TryPeekInt(out uint value, int bitsCount = 32)
     {
         if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
-        if (bitsCount > 32) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 33");
+        if (bitsCount > 32) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than or equals to 32");
         if (bitsCount > RemainingBits)
         {
             value = 0;
@@ -235,7 +235,7 @@ public ref struct SpanBitReader
     public bool TryPeekLong(out ulong value, int bitsCount = 64)
     {
         if (bitsCount <= 0) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be positive");
-        if (bitsCount > 64) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than 65");
+        if (bitsCount > 64) throw new ArgumentOutOfRangeException(nameof(bitsCount), bitsCount, "Must be less than or equals to 64");
         if (bitsCount > RemainingBits)
         {
             value = 0;
