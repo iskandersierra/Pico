@@ -50,8 +50,8 @@ public partial class ReflectionExtensionsTests
     [InlineData(typeof(List<Regex>[,]), "List<Regex>[,]")]
     [InlineData(typeof(int*), "int*")]
     [InlineData(typeof(int**), "int**")]
-    public void GetTypeName(Type type, string expected) =>
-        type.GetTypeName().Should().Be(expected);
+    public void ToDebugString(Type type, string expected) =>
+        type.ToDebugString().Should().Be(expected);
 
     [Theory]
     [InlineData(typeof(string), "string")]
@@ -98,6 +98,6 @@ public partial class ReflectionExtensionsTests
     [InlineData(typeof(List<Regex>[,]), "List<Regex>[,]")]
     [InlineData(typeof(int*), "int*")]
     [InlineData(typeof(int**), "int**")]
-    public void GetTypeNameFullyQualified(Type type, string expected) =>
-        type.GetTypeName(true).Should().Be(expected);
+    public void ToDebugStringFullyQualified(Type type, string expected) =>
+        type.ToDebugString(true).Should().Be(expected);
 }

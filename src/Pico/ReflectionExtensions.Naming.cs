@@ -6,6 +6,8 @@ namespace Pico;
 
 partial class ReflectionExtensions
 {
+    #region [ Known Names and Constants ]
+    
     private static readonly HashSet<Type> KnownGenericTypes =
         new()
         {
@@ -87,7 +89,9 @@ partial class ReflectionExtensions
             [typeof(Regex)] = "Regex",
         };
 
-    public static string GetTypeName(this Type type, bool fullyQualified = false)
+    #endregion
+
+    public static string ToDebugString(this Type type, bool fullyQualified = false)
     {
         if (KnownTypeNames.TryGetValue(type, out var typeName))
         {
@@ -96,14 +100,14 @@ partial class ReflectionExtensions
 
         if (type.IsArray)
         {
-            var subType = type.GetElementType()!.GetTypeName(fullyQualified);
+            var subType = type.GetElementType()!.ToDebugString(fullyQualified);
             var ranks = new string(',', type.GetArrayRank() - 1);
             return $"{subType}[{ranks}]";
         }
 
         if (type.IsPointer)
         {
-            var subType = type.GetElementType()!.GetTypeName(fullyQualified);
+            var subType = type.GetElementType()!.ToDebugString(fullyQualified);
             return $"{subType}*";
         }
 
@@ -128,7 +132,7 @@ partial class ReflectionExtensions
                     sb.Append(", ");
                 }
 
-                sb.Append(GetTypeName(args[i], fullyQualified));
+                sb.Append(ToDebugString(args[i], fullyQualified));
             }
             sb.Append('>');
 
