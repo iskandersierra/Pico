@@ -44,8 +44,7 @@ partial class ReflectionExtensions
         string methodName) =>
         CreateVoidDispatcher(
             targetType,
-            IsMethodNamed(methodName),
-            GetFirstParameterType);
+            IsMethodNamed(methodName));
 
     #endregion
 
@@ -210,7 +209,7 @@ public static class MethodDispatcher
         IEqualityComparer<TMethod>? comparer = null)
         where TMethod : notnull
         => new(comparer);
-    
+
     public static MethodDispatcherBuilder<TMethod, TResult> Builder<TMethod, TResult>(
         IEqualityComparer<TMethod>? comparer = null)
         where TMethod : notnull
@@ -223,7 +222,7 @@ public static class MethodDispatcher
         private readonly Dictionary<TMethod, DispatchMethod> dispatchers;
         private DispatchMethodFallback<TMethod>? fallback;
 
-        public MethodDispatcherBuilder(
+        internal MethodDispatcherBuilder(
             IEqualityComparer<TMethod>? comparer = null)
         {
             this.comparer = comparer;
@@ -258,7 +257,7 @@ public static class MethodDispatcher
         private readonly Dictionary<TMethod, DispatchMethod<TResult>> dispatchers;
         private DispatchMethodFallback<TMethod, TResult>? fallback;
 
-        public MethodDispatcherBuilder(
+        internal MethodDispatcherBuilder(
             IEqualityComparer<TMethod>? comparer = null)
         {
             this.comparer = comparer;
@@ -361,6 +360,11 @@ public static class ParameterResolver
         private ResolveParameter? fallback;
         private Func<ParameterInfo, string>? notFoundMessage;
 
+        internal ParameterResolverBuilder()
+        {
+
+        }
+
         #region [ ForInstance ]
 
         public ParameterResolverBuilder ForInstance(Type type, object instance) =>
@@ -377,7 +381,7 @@ public static class ParameterResolver
 
         public ParameterResolverBuilder ForInstances(
             params object[] instances) =>
-            ForInstances((IEnumerable<object>) instances);
+            ForInstances((IEnumerable<object>)instances);
 
         public ParameterResolverBuilder ForInstances(
             IEnumerable<object> instances) =>
@@ -387,14 +391,6 @@ public static class ParameterResolver
         public ParameterResolverBuilder ForInstances(
             IEnumerable<(Type key, object instance)> instances) =>
             ForInstances(instances.ToDictionary(e => e.key, e => e.instance));
-
-        public ParameterResolverBuilder ForInstances(
-            IEnumerable<Tuple<Type, object>> instances) =>
-            ForInstances(instances.ToDictionary(e => e.Item1, e => e.Item2));
-
-        public ParameterResolverBuilder ForInstances(
-            IEnumerable<KeyValuePair<Type, object>> instances) =>
-            ForInstances(instances.ToDictionary(e => e.Key, e => e.Value));
 
         public ParameterResolverBuilder ForInstances(
             IDictionary<Type, object> instances) =>
