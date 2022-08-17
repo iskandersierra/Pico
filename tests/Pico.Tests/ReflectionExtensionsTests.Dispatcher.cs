@@ -34,6 +34,9 @@ public partial class ReflectionExtensionsTests
         // THEN
         dispatcher.CanDispatch(typeof(bool)).Should().BeFalse();
 
+        // THEN
+        dispatcher.Methods.Should().BeEquivalentTo(new[] {typeof(string), typeof(int)});
+
         // GIVEN
         var target = new Mock<ISampleVoidDispatcher>(MockBehavior.Loose);
 
@@ -114,6 +117,9 @@ public partial class ReflectionExtensionsTests
 
         // THEN
         dispatcher.CanDispatch(typeof(bool)).Should().BeFalse();
+
+        // THEN
+        dispatcher.Methods.Should().BeEquivalentTo(new[] { typeof(string), typeof(int) });
 
         // GIVEN
         var target = new Mock<ISampleTaskDispatcher>(MockBehavior.Loose);

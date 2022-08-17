@@ -80,8 +80,7 @@ partial class ReflectionExtensions
         this Type targetType,
         Predicate<MethodInfo> isValidMethod,
         Converter<object?, TResult> convertResult) =>
-        CreateDispatcher(
-            targetType,
+        targetType.CreateDispatcher(
             HaveAtLeastOneParameter(isValidMethod),
             GetFirstParameterType,
             convertResult);
@@ -90,8 +89,7 @@ partial class ReflectionExtensions
         this Type targetType,
         Predicate<MethodInfo> isValidMethod,
         Func<MethodInfo, Type> getIdentifierType) =>
-        CreateDispatcher(
-            targetType,
+        targetType.CreateDispatcher(
             isValidMethod,
             getIdentifierType,
             ConvertResultOrThrow<TResult>);
@@ -99,8 +97,7 @@ partial class ReflectionExtensions
     public static IMethodDispatcher<Type, TResult> CreateDispatcher<TResult>(
         this Type targetType,
         Predicate<MethodInfo> isValidMethod) =>
-        CreateDispatcher(
-            targetType,
+        targetType.CreateDispatcher(
             isValidMethod,
             ConvertResultOrThrow<TResult>);
 
@@ -108,8 +105,7 @@ partial class ReflectionExtensions
         this Type targetType,
         string methodName,
         Converter<object?, TResult> convertResult) =>
-        CreateDispatcher(
-            targetType,
+        targetType.CreateDispatcher(
             IsMethodNamed(methodName),
             GetFirstParameterType,
             convertResult);
@@ -117,8 +113,7 @@ partial class ReflectionExtensions
     public static IMethodDispatcher<Type, TResult> CreateDispatcher<TResult>(
         this Type targetType,
         string methodName) =>
-        CreateDispatcher(
-            targetType,
+        targetType.CreateDispatcher(
             IsMethodNamed(methodName),
             ConvertResultOrThrow<TResult>);
 
@@ -129,27 +124,24 @@ partial class ReflectionExtensions
     public static IMethodDispatcher<Type, Task> CreateTaskDispatcher(
         this Type targetType,
         Predicate<MethodInfo> isValidMethod,
-        Func<MethodInfo, Type> getIdentifierType)
-    {
-        return CreateDispatcher(
-            targetType,
+        Func<MethodInfo, Type> getIdentifierType) =>
+        targetType.CreateDispatcher(
             isValidMethod,
             getIdentifierType,
             result => result as Task ?? Task.CompletedTask);
-    }
 
     public static IMethodDispatcher<Type, Task> CreateTaskDispatcher(
         this Type targetType,
         Predicate<MethodInfo> isValidMethod) =>
-        CreateTaskDispatcher(
-            targetType,
+        targetType.CreateTaskDispatcher(
             HaveAtLeastOneParameter(isValidMethod),
             GetFirstParameterType);
 
     public static IMethodDispatcher<Type, Task> CreateTaskDispatcher(
         this Type targetType,
         string methodName) =>
-        CreateTaskDispatcher(targetType, IsMethodNamed(methodName));
+        targetType.CreateTaskDispatcher(
+            IsMethodNamed(methodName));
 
     #endregion
 
@@ -160,8 +152,7 @@ partial class ReflectionExtensions
 
     private static Predicate<MethodInfo> IsMethodNamed(
         string methodName) =>
-        info => info.Name == methodName &&
-                info.GetParameters().Length > 0;
+        info => info.Name == methodName;
 
     private static Type GetFirstParameterType(MethodInfo method) =>
         method.GetParameters()[0].ParameterType;
@@ -181,9 +172,11 @@ public delegate void DispatchMethodFallback<in TMethod>(object target, TMethod m
 public delegate TResult DispatchMethod<out TResult>(object target, ResolveParameter resolveParameter);
 public delegate TResult DispatchMethodFallback<in TMethod, out TResult>(object target, TMethod method, ResolveParameter resolveParameter) where TMethod : notnull;
 
-public interface IMethodDispatcher<in TMethod>
+public interface IMethodDispatcher<TMethod>
     where TMethod : notnull
 {
+    IEnumerable<TMethod> Methods { get; }
+
     bool CanDispatch(TMethod method);
 
     void Dispatch(
@@ -192,9 +185,11 @@ public interface IMethodDispatcher<in TMethod>
         ResolveParameter resolveParameter);
 }
 
-public interface IMethodDispatcher<in TMethod, out TResult>
+public interface IMethodDispatcher<TMethod, out TResult>
     where TMethod : notnull
 {
+    IEnumerable<TMethod> Methods { get; }
+
     bool CanDispatch(TMethod method);
 
     TResult Dispatch(
@@ -300,6 +295,8 @@ public static class MethodDispatcher
             this.fallback = fallback;
         }
 
+        public IEnumerable<TMethod> Methods => dispatchers.Keys;
+
         public bool CanDispatch(TMethod method) => dispatchers.ContainsKey(method);
 
         public void Dispatch(
@@ -333,6 +330,7 @@ public static class MethodDispatcher
             this.fallback = fallback;
         }
 
+        public IEnumerable<TMethod> Methods => dispatchers.Keys;
         public bool CanDispatch(TMethod method) => dispatchers.ContainsKey(method);
 
         public TResult Dispatch(
