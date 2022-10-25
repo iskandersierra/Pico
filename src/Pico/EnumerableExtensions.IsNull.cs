@@ -38,4 +38,18 @@ public static partial class EnumerableExtensions
     public static bool IsNotNullOrEmpty<T>(
         [NotNullWhen(true)] this T[]? source) =>
         !IsNullOrEmpty(source);
+
+    public static bool IsNullOrEmpty<T>(
+        [NotNullWhen(false)] this IEnumerable<T>? source) =>
+        source switch
+        {
+            null => true,
+            ICollection<T> collection => collection.IsNullOrEmpty(),
+            IReadOnlyCollection<T> readOnlyCollection => readOnlyCollection.IsNullOrEmpty(),
+            _ => !source.Any()
+        };
+
+    public static bool IsNotNullOrEmpty<T>(
+        [NotNullWhen(true)] this IEnumerable<T>? source) =>
+        !IsNullOrEmpty(source);
 }

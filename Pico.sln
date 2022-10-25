@@ -7,15 +7,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{63FB8FEF-697
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{E6C47A92-F13F-4D92-9514-59185F6CA4AB}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "examples", "examples", "{8C23B93E-2A85-4B76-9A8F-D87B5C5854E2}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pico", "src\Pico\Pico.csproj", "{8E5819D8-D879-4325-9550-A6CB00B9CA0F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pico.Tests", "tests\Pico.Tests\Pico.Tests.csproj", "{F20A9121-7086-4799-B841-7A90AA198D26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pico.Abstractions", "src\Pico.Abstractions\Pico.Abstractions.csproj", "{0E9CCC76-6146-42A1-A72A-F5508D2E7721}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pico.Abstractions", "src\Pico.Abstractions\Pico.Abstractions.csproj", "{0E9CCC76-6146-42A1-A72A-F5508D2E7721}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Pico.Abstractions.Tests", "tests\Pico.Abstractions.Tests\Pico.Abstractions.Tests.csproj", "{096D9BEF-DC6B-48C1-80CD-FF2888F12084}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Pico.Abstractions.Tests", "tests\Pico.Abstractions.Tests\Pico.Abstractions.Tests.csproj", "{096D9BEF-DC6B-48C1-80CD-FF2888F12084}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
